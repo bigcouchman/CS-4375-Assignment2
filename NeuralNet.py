@@ -17,19 +17,24 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import mean_squared_error
 from sklearn.exceptions import ConvergenceWarning
-# from ucimlrepo import fetch_ucirepo
+from ucimlrepo import fetch_ucirepo
 
 class NeuralNet:
-    def __init__(self, dataFile, header=True):
-        self.raw_input = pd.read_csv(dataFile, sep = ';')
+    def __init__(self, d_id = 186):
+        dataset = fetch_ucirepo(id = d_id)
+        X = dataset.data.features
+        y = dataset.data.targets
+
+        self.raw_input = pd.concat([X, y], axis=1)
+        self.target_name = y.columns[0]
 
     # TODO: Write code for pre-processing the dataset, which would include
     # standardization, normalization,
     #   categorical to numerical, etc
     def preprocess(self):
         dframe = self.raw_input.fillna(self.raw_input.mean())
-        X = dframe.drop('quality', axis=1)
-        y = dframe['quality']
+        X = dframe.drop(self.target_name, axis=1)
+        y = dframe[self.target_name]
 
         self.X_processed = (X - X.mean()) / X.std()
         self.y_processed = y
@@ -83,6 +88,7 @@ class NeuralNet:
 
                         title = f"{i}_lr{j}_ep{k}_lay{l}"
                         results.append({
+                            "Activation": i,
                             "Label": title,
                             "Training Accuracy": round(accur_train, 4),
                             "Test Accuracy": round(accur_test, 4),
@@ -91,11 +97,11 @@ class NeuralNet:
                         })
                         ax.plot(mlpClass.loss_curve_, label=title)
 
-        # Plot the model history for each model in a single plot
-        # model history is a plot of accuracy vs number of epochs
-        # you may want to create a large sized plot to show multiple lines
+            # Plot the model history for each model in a single plot
+            # model history is a plot of accuracy vs number of epochs
+            # you may want to create a large sized plot to show multiple lines
             # in a same figure.
-            ax.set_title("NN Training History: {i}")
+            ax.set_title(f"NN Training History: {i}")
             ax.set_xlabel("Epochs")
             ax.set_ylabel("MSE")
             ax.legend(fontsize='xx-small', loc='upper right')
@@ -105,11 +111,19 @@ class NeuralNet:
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
         dframe_results = pd.DataFrame(results)
+        accur_avg = dframe_results.groupby('Activation')['Test Accuracy'].mean()
+        best_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmax()]
+        worst_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmin()]
+        
         print("\n--- Result table ---")
         print(dframe_results.to_string(index=False))
 
+        print("Average Test Accuracy per Activation: ")
+        print(accur_avg)
+        print(f"Best Accuracy: {best_test['Label']} | Accuracy: {best_test['Test Accuracy']}")
+        print(f"Worst Accuracy: {worst_test['Label']} | Accuracy: {worst_test['Test Accuracy']}")
+
 if __name__ == "__main__":
-    url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
-    neural_network = NeuralNet(url) # put in path to your file
+    neural_network = NeuralNet(186) # put in path to your file
     neural_network.preprocess()
     neural_network.train_evaluate()
