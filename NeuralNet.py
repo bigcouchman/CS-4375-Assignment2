@@ -67,64 +67,67 @@ class NeuralNet:
         )
 
         # Hyper-parameter grid
-        # logistic - sigmoid 
+        # logistic = sigmoid 
         activations = ['logistic', 'tanh', 'relu']
         learning_rates = [0.01, 0.1]
         max_iterations = [100, 200]          # epochs
         num_hidden_layers = [2, 3]
-        neurons_per_layer = 32               # fixed neuron count per hidden layer
+        neurons_per_layer = 12               # fixed neuron count per hidden layer
+        alphas = [0.0001, 0.01]               # L2 regularization strength 
 
         # Train all models
         results = []
         model_curves = {}                    # label -> loss_curve
 
         total = (len(activations) * len(learning_rates) *
-                 len(max_iterations) * len(num_hidden_layers))
+                 len(max_iterations) * len(num_hidden_layers) * len(alphas))
         count = 0
 
         for act in activations:
             for lr in learning_rates:
                 for epochs in max_iterations:
                     for n_layers in num_hidden_layers:
-                        count += 1
-                        hidden = tuple([neurons_per_layer] * n_layers)
-                        label = f"{act}_lr{lr}_ep{epochs}_hl{n_layers}"
+                        for alpha in alphas:
+                            count += 1
+                            hidden = tuple([neurons_per_layer] * n_layers)
+                            label = f"{act}_lr{lr}_ep{epochs}_hl{n_layers}_alpha{alpha}"
 
-                        print("\n")
-                        print(f"  Training model {count}/{total}: {label} …", end=" ")
+                            print("\n")
+                            print(f"  Training model {count}/{total}: {label} …", end=" ")
 
-                        mlp = MLPClassifier(
-                            hidden_layer_sizes=hidden,
-                            activation=act,
-                            learning_rate_init=lr,
-                            max_iter=epochs,
-                            random_state=42
-                        )
-                        mlp.fit(X_train, y_train)
+                            mlp = MLPClassifier(
+                                hidden_layer_sizes=hidden,
+                                activation=act,
+                                learning_rate_init=lr,
+                                max_iter=epochs,
+                                alpha=alpha,
+                                random_state=42
+                            )
+                            mlp.fit(X_train, y_train)
 
-                        # Predictions
-                        pred_train = mlp.predict(X_train)
-                        pred_test  = mlp.predict(X_test)
+                            # Predictions
+                            pred_train = mlp.predict(X_train)
+                            pred_test  = mlp.predict(X_test)
 
-                        # Metrics
-                        acc_train = mlp.score(X_train, y_train)
-                        acc_test  = mlp.score(X_test, y_test)
-                        mse_train = mean_squared_error(y_train, pred_train)
-                        mse_test  = mean_squared_error(y_test, pred_test)
+                            # Metrics
+                            acc_train = mlp.score(X_train, y_train)
+                            acc_test  = mlp.score(X_test, y_test)
+                            mse_train = mean_squared_error(y_train, pred_train)
+                            mse_test  = mean_squared_error(y_test, pred_test)
 
-                        results.append({
-                            "Model": label,
-                            "Activation": act,
-                            "Learning Rate": lr,
-                            "Epochs": epochs,
-                            "Hidden Layers": n_layers,
-                            "Train Accuracy": round(acc_train, 4),
-                            "Test Accuracy": round(acc_test, 4),
-                            "Train MSE": round(mse_train, 4),
-                            "Test MSE": round(mse_test, 4),
-                        })
-                        model_curves[label] = mlp.loss_curve_
-                        print("done")
+                            results.append({
+                                "Model": label,
+                                "Activation": act,
+                                "Learning Rate": lr,
+                                "Epochs": epochs,
+                                "Hidden Layers": n_layers,
+                                "Train Accuracy": round(acc_train, 4),
+                                "Test Accuracy": round(acc_test, 4),
+                                "Train MSE": round(mse_train, 4),
+                                "Test MSE": round(mse_test, 4),
+                            })
+                            model_curves[label] = mlp.loss_curve_
+                            print("done")
 
         # Results Table
         results_df = pd.DataFrame(results)
@@ -186,10 +189,9 @@ class NeuralNet:
 
 
 if __name__ == "__main__":
-    # Fetch Wine Quality dataset from UCI ML Repo (RED ONLY)
+    # Fetch Wine Quality dataset from UCI ML Repo (Red & White)
     repo = fetch_ucirepo(id=186)
     df = repo.data.original.copy()
-    df = df[df['color'] == 'red'].drop('color', axis=1)  # filter + drop color column
     neural_network = NeuralNet(df)
     neural_network.preprocess()
     neural_network.train_evaluate()

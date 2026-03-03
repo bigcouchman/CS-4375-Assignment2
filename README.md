@@ -2,20 +2,40 @@
 
 ## Overview
 
-This project trains and evaluates multiple neural network models on the **Wine Quality (Red)** dataset from the UCI Machine Learning Repository. It explores all combinations of the following hyper-parameters and produces performance metrics and loss-curve plots.
+This project trains and evaluates multiple neural network models on the **Wine Quality** dataset (Red & White) from the UCI Machine Learning Repository. All combinations of the hyperparameters below are explored, producing performance metrics and loss-curve plots.
+
+---
 
 ## Dataset
 
-**Wine Quality — Red Wine**  
-UCI ML Repository: <https://archive.ics.uci.edu/ml/datasets/Wine+Quality>  
-Fetched programmatically using the `ucimlrepo` Python package (dataset ID: 186), filtered to red wine only.
+**Wine Quality (Red & White)**  
+UCI ML Repository ID: `186`  
+URL: https://archive.ics.uci.edu/ml/datasets/Wine+Quality
 
-The dataset contains 1,599 samples (1,359 after deduplication) with 11 physicochemical input features and one output feature (`quality`, an integer score from 3–8).
+Fetched programmatically using the `ucimlrepo` Python package. The combined dataset contains **5,320 samples** (after deduplication) with **12 physicochemical input features** and one output feature (`quality`, integer score 3–9).
+
+---
 
 ## Requirements
 
 - Python 3.8+
-- Packages listed in `requirements.txt`
+
+Install all dependencies via:
+
+```bash
+pip install -r requirements.txt
+```
+
+**`requirements.txt`**
+```
+numpy
+pandas
+matplotlib
+scikit-learn
+ucimlrepo
+```
+
+---
 
 ## How to Run
 
@@ -32,50 +52,91 @@ pip install -r requirements.txt
 python NeuralNet.py
 ```
 
-### Output
+---
 
-- A **results table** printed to the console showing hyper-parameters, training/test accuracy, and training/test MSE for every model.
-- **`model_history_all.png`** — Loss vs. epoch plot with all 24 models on a single figure.
-- **`model_history_by_activation.png`** — Loss vs. epoch plots split by activation function.
+## Output
 
-## Hyper-Parameter Grid
+Running the program produces:
 
-| Parameter | Values |
+| Output | Description |
 |---|---|
-| Activation Function | `logistic`, `tanh`, `relu` |
+| Console table | Hyperparameters, train/test accuracy, train/test MSE for all 48 models |
+| `model_history_all.png` | Loss vs. epoch for all 48 models on a single figure |
+| `model_history_by_activation.png` | Loss vs. epoch split into 3 subplots by activation function |
+
+---
+
+## Hyperparameter Grid
+
+| Parameter | Values Tested |
+|---|---|
+| Activation Function | `logistic` (sigmoid), `tanh`, `relu` |
 | Learning Rate | `0.01`, `0.1` |
 | Max Iterations (Epochs) | `100`, `200` |
 | Hidden Layers | `2`, `3` |
+| L2 Regularization (alpha) | `0.0001`, `0.01` |
+| Neurons per Hidden Layer | `12` (fixed) |
 
-Total combinations: **3 × 2 × 2 × 2 = 24 models**
+**Total combinations: 3 × 2 × 2 × 2 × 2 = 48 models**
+
+---
 
 ## Pre-processing Steps
 
-1. **Duplicate removal** — Dropped exact duplicate rows (1,599 → 1,359).
-2. **Missing value handling** — Filled numeric NaN values with the column mean.
-3. **Categorical encoding** — Any non-numeric columns are label-encoded.
-4. **Standardization** — Z-score normalization applied to all features.
+1. **Duplicate removal** — Exact duplicate rows dropped (5,320 unique rows remain).
+2. **Feature/target split** — `quality` used as the target; all other columns used as features.
+3. **Missing value handling** — Numeric NaN values filled with the column mean.
+4. **Categorical encoding** — Non-numeric columns label-encoded with `LabelEncoder`.
+5. **Standardization** — Z-score normalization applied to all features.
+
+---
 
 ## Results Summary
 
-After training all 24 models on red wine data, the key findings are:
+| Metric | Model | Value |
+|---|---|---|
+| **Best test accuracy** | `logistic_lr0.01_ep200_hl2_alpha0.01` | **58.08%** |
+| **Worst test accuracy** | `tanh_lr0.1_ep100_hl2_alpha0.01` | **51.13%** |
 
-- **Best model:** `logistic_lr0.01_ep100_hl3` with **62.87% test accuracy**
-- **Worst model:** `relu_lr0.01_ep200_hl2` with **48.90% test accuracy**
-- **Logistic activation** performed best on average (avg test accuracy: **0.5551**), likely because the dataset is small and well-scaled, where logistic converges reliably without overfitting aggressively
-- **ReLU** was second (avg test accuracy: **0.5492**), performing comparably to logistic in several configurations
-- **Tanh** performed worst on average (avg test accuracy: **0.5345**) and showed severe overfitting — for example, `tanh_lr0.01_ep200_hl3` reached 99.91% train accuracy but only 52.94% test accuracy
-- **Lower learning rate (0.01)** consistently produced better generalization than 0.1, which caused unstable or aggressive training
-- **100 epochs often outperformed 200 epochs** — additional training without regularization led to overfitting rather than improved generalization
-- **Several models with lr=0.1 plateaued** before 100 epochs, producing identical results at ep100 vs ep200 (e.g., both `tanh_lr0.1_ep100_hl2` and `tanh_lr0.1_ep200_hl2` show identical metrics)
-- **3 hidden layers did not consistently outperform 2** — the dataset is relatively small and does not always benefit from the added depth
+### Average Test Accuracy by Activation Function
 
-Overall, the dataset favors stable, conservative optimization. The logistic activation with a low learning rate and fewer epochs generalized best, while deeper or more aggressively trained models tended to overfit. The dataset type Wine Quality and dataset size also make it hard to get better test accuracy. We experimented added L2 regularization (alpha) and it didn't help much either.
+| Activation | Avg. Test Accuracy |
+|---|---|
+| `logistic` | 0.5592 |
+| `relu` | 0.5471 |
+| `tanh` | 0.5393 |
+
+---
+
+## Analysis
+
+### Activation Functions
+**Logistic (sigmoid)** achieved the highest average test accuracy (55.92%) and produced the single best model. **ReLU** ranked second (54.71%), while **tanh** ranked last (53.93%). The ~2 percentage point gap between logistic and tanh is meaningful given the narrow overall accuracy range.
+
+### Learning Rate
+A learning rate of **0.01** consistently outperformed **0.1** — particularly for logistic and tanh activations. The best overall model used lr=0.01. Higher learning rates (0.1) increased the risk of overshooting minima, as seen with tanh where the worst model (tanh_lr0.1_ep100_hl2_alpha0.01, 51.13%) was also a high-lr configuration. ReLU was more resilient to this effect.
+
+### Number of Epochs (100 vs. 200)
+With early stopping removed, the epoch budget now has a genuine effect. Several models improved meaningfully at 200 epochs — for example, logistic_lr0.01_ep200_hl2_alpha0.01 (58.08%) outperforms its 100-epoch counterpart (57.33%). This confirms 100 epochs was sometimes insufficient for convergence at lr=0.01, and the extra budget was put to use.
+
+### Depth (2 vs. 3 Hidden Layers)
+Results were mixed. For logistic at lr=0.01, 2 hidden layers slightly outperformed 3. For tanh and relu, 3 layers sometimes produced higher training accuracy but did not reliably improve test accuracy, suggesting some overfitting with deeper networks with this amount of neurons.
+
+### L2 Regularization (alpha)
+The effect of alpha was small but visible. In the logistic group, alpha=0.01 produced the best single model (58.08%), showing that a regularization penalty helped generalization on this noisy dataset. In the tanh group, higher alpha sometimes hurt — notably the worst model overall used alpha=0.01 with lr=0.1. Adding alpha though helped with overfitting massivly though. Before adding alpha in our model, overfitting was a problem. Some models had 91% train accuracy and 50% test accuracy. 
+
+### Overfitting
+Several tanh and relu models show a noticeable train/test accuracy gap (e.g., tanh_lr0.01_ep200_hl3_alpha0.0001: train 62.92%, test 54.42%), indicating overfitting. Logistic models showed more balanced train/test gaps, contributing to stronger generalization.
+
+### Overall
+All models fall in a ~51-58% accuracy range, this shows the true difficulty of the 7-class problem. The class distribution is heavily skewed toward quality scores 5 and 6, making minority classes (3, 4, 8, 9) hard to predict. Logistic activation with a low learning rate, 2 hidden layers, and moderate regularization generalized best on this dataset.
+---
 
 ## Assumptions
 
-- Fixed 32 neurons per hidden layer across all models
-- Used loss curve (not accuracy curve) for model history plots
-- 80/20 train/test split with `random_state=42`
-- No regularization applied (used sklearn default)
-- Dataset ID 186 from `ucimlrepo` contains both red and white wine; code explicitly filters to red wine only and drops the `color` column before training
+- Neurons per hidden layer is fixed at **12** across all models.
+- **Loss curve** is used for model history plots, as `MLPClassifier` exposes `loss_curve_` directly.
+- An **80/20 train/test split** is used with `random_state=42` for reproducibility.
+- `MLPClassifier` parameters used: `hidden_layer_sizes`, `activation`, `learning_rate_init`, `max_iter`, `alpha`, `random_state=42`. No early stopping is applied.
+- Dataset ID `186` from `ucimlrepo` contains both red and white wine samples; both are used to increase sample size.
+- The `color` column (red/white indicator) is retained as a feature after label encoding.
