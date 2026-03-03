@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import mean_squared_error
-from ucimlrepo import fetch_ucirepo
+# from ucimlrepo import fetch_ucirepo
 
 class NeuralNet:
     def __init__(self, dataFile, header=True):
@@ -57,7 +57,7 @@ class NeuralNet:
         #   metrics
 
         results = []
-        plt.figure(figsize=(12, 6))
+        plt.figure(figsize=(15, 10))
         for i in activations:
             for j in learning_rate:
                 for k in max_iterations:
@@ -82,16 +82,21 @@ class NeuralNet:
                             "Training MSE": round(mse_train, 4),
                             "Test MSE": round(mse_test, 4),
                         })
-
-                        plt.plot(mlpClass.loss_curve_, label = title)
+                        plt.plot(mlpClass.loss_curve_, label=title)
 
         # Plot the model history for each model in a single plot
         # model history is a plot of accuracy vs number of epochs
         # you may want to create a large sized plot to show multiple lines
-        # in a same figure.
-
-
-
+            # in a same figure.
+        plt.title("NN Training History: All Models")
+        plt.xlabel("Epochs")
+        plt.ylabel("Loss")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='xx-small')
+        plt.tight_layout()
+        plt.show()
+        dframe_results = pd.DataFrame(results)
+        print("\n--- Result table ---")
+        print(dframe_results.to_string(index=False))
 
 if __name__ == "__main__":
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
