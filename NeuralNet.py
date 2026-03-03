@@ -158,7 +158,7 @@ class NeuralNet:
         plt.savefig("model_history_by_activation.png", dpi=150, bbox_inches="tight")
         print("\n[Plot] Saved: model_history_by_activation.png")
 
-        # 24 curves
+        # 48 curves
         plt.figure(figsize=(16, 8))
         for label, curve in model_curves.items():
             plt.plot(curve, label=label)
