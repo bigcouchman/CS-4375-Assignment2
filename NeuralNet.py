@@ -12,9 +12,11 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import warnings
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import mean_squared_error
+from sklearn.exceptions import ConvergenceWarning
 # from ucimlrepo import fetch_ucirepo
 
 class NeuralNet:
@@ -57,14 +59,19 @@ class NeuralNet:
         #   metrics
 
         results = []
-        plt.figure(figsize=(15, 10))
-        for i in activations:
+        fig, axes = plt.subplots(1, 3, figsize=(20,6), sharey=True)
+        for element, i in enumerate(activations):
+            ax = axes[element]
             for j in learning_rate:
                 for k in max_iterations:
                     for l in num_hidden_layers:
                         hidden_layers = tuple([32] * l)
                         mlpClass = MLPClassifier(hidden_layer_sizes=hidden_layers, activation=i, learning_rate_init=j, max_iter=k, random_state=1)
-                        mlpClass.fit(X_train, y_train)
+                        
+
+                        with warnings.catch_warnings():
+                            warnings.filterwarnings("ignore", category=ConvergenceWarning)
+                            mlpClass.fit(X_train, y_train)
 
                         predict_train = mlpClass.predict(X_train)
                         predict_test = mlpClass.predict(X_test)
@@ -82,17 +89,20 @@ class NeuralNet:
                             "Training MSE": round(mse_train, 4),
                             "Test MSE": round(mse_test, 4),
                         })
-                        plt.plot(mlpClass.loss_curve_, label=title)
+                        ax.plot(mlpClass.loss_curve_, label=title)
 
         # Plot the model history for each model in a single plot
         # model history is a plot of accuracy vs number of epochs
         # you may want to create a large sized plot to show multiple lines
             # in a same figure.
-        plt.title("NN Training History: All Models")
-        plt.xlabel("Epochs")
-        plt.ylabel("Loss")
-        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='xx-small')
-        plt.tight_layout()
+            ax.set_title("NN Training History: {i}")
+            ax.set_xlabel("Epochs")
+            ax.set_ylabel("MSE")
+            ax.legend(fontsize='xx-small', loc='upper right')
+            ax.grid(True, linestyle='--', alpha=0.5)
+        
+        plt.suptitle("Neural Network Training History", fontsize=16)
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
         dframe_results = pd.DataFrame(results)
         print("\n--- Result table ---")
