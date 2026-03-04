@@ -33,6 +33,7 @@ class NeuralNet:
     #   categorical to numerical, etc
     def preprocess(self):
         dframe = self.raw_input.fillna(self.raw_input.mean())
+        dframe.drop_duplicates(inplace=True)
         X = dframe.drop(self.target_name, axis=1)
         y = dframe[self.target_name]
 
@@ -72,7 +73,7 @@ class NeuralNet:
                 for k in max_iterations:
                     for l in num_hidden_layers:
                         for alp in alphas:
-                            hidden_layers = tuple([32] * l)
+                            hidden_layers = tuple([12] * l)
                             mlpClass = MLPClassifier(hidden_layer_sizes=hidden_layers, activation=i, learning_rate_init=j, max_iter=k, alpha = alp, random_state=1)
                         
 
@@ -114,7 +115,10 @@ class NeuralNet:
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
         dframe_results = pd.DataFrame(results)
-        accur_avg = dframe_results.groupby('Activation')['Test Accuracy'].mean()
+        accur_avg_train = dframe_results.groupby('Activation')['Training Accuracy'].mean()
+        accur_avg_test = dframe_results.groupby('Activation')['Test Accuracy'].mean()
+        best_train = dframe_results.loc[dframe_results['Training Accuracy'].idxmax()]
+        worst_train = dframe_results.loc[dframe_results['Training Accuracy'].idxmin()]
         best_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmax()]
         worst_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmin()]
         
@@ -122,9 +126,14 @@ class NeuralNet:
         print(dframe_results.to_string(index=False))
 
         print("Average Test Accuracy per Activation: ")
-        print(accur_avg)
+        print(accur_avg_test)
         print(f"Best Accuracy: {best_test['Label']} | Accuracy: {best_test['Test Accuracy']}")
         print(f"Worst Accuracy: {worst_test['Label']} | Accuracy: {worst_test['Test Accuracy']}")
+
+        print("Average Training Accuracy per Activation: ")
+        print(accur_avg_train)
+        print(f"Best Accuracy: {best_train['Label']} | Accuracy: {best_train['Training Accuracy']}")
+        print(f"Worst Accuracy: {worst_train['Label']} | Accuracy: {worst_train['Training Accuracy']}")
 
 if __name__ == "__main__":
     neural_network = NeuralNet(186) # put in path to your file
