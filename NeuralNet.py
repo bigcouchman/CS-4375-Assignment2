@@ -121,6 +121,7 @@ class NeuralNet:
                                 "Learning Rate": lr,
                                 "Epochs": epochs,
                                 "Hidden Layers": n_layers,
+                                "Regularization (Alpha)": alpha,
                                 "Train Accuracy": round(acc_train, 4),
                                 "Test Accuracy": round(acc_test, 4),
                                 "Train MSE": round(mse_train, 4),
