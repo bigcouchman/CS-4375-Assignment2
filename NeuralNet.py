@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import warnings
+import os
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import mean_squared_error
@@ -52,7 +53,8 @@ class NeuralNet:
 
     def train_evaluate(self):
         X_train, X_test, y_train, y_test = train_test_split(self.X_processed, self.y_processed, test_size = 0.2, random_state = 42)
-
+        os.makedirs("plots", exist_ok=True)
+        os.makedirs("logs", exist_ok=True)
         # Below are the hyperparameters that you need to use for model evaluation
         # You can assume any fixed number of neurons for each hidden layer. 
         
@@ -114,6 +116,9 @@ class NeuralNet:
         plt.suptitle("Neural Network Training History", fontsize=16)
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
+
+        
+        
         dframe_results = pd.DataFrame(results)
         accur_avg_train = dframe_results.groupby('Activation')['Training Accuracy'].mean()
         accur_avg_test = dframe_results.groupby('Activation')['Test Accuracy'].mean()
@@ -122,6 +127,11 @@ class NeuralNet:
         best_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmax()]
         worst_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmin()]
         
+        plotting = os.path.join("plots", "nn_training_history.png")
+        plt.savefig(plotting)
+        logging = os.path.join("logs", "results.csv")
+        dframe_results.to_csv(logging, index=False)
+
         print("\n--- Result table ---")
         print(dframe_results.to_string(index=False))
 
