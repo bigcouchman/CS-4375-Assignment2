@@ -59,6 +59,7 @@ class NeuralNet:
         learning_rate = [0.01, 0.1]
         max_iterations = [100, 200] # also known as epochs
         num_hidden_layers = [2, 3]
+        alphas = [0.0001, 0.1]
 
         # Create the neural network and be sure to keep track of the performance
         #   metrics
@@ -70,32 +71,34 @@ class NeuralNet:
             for j in learning_rate:
                 for k in max_iterations:
                     for l in num_hidden_layers:
-                        hidden_layers = tuple([32] * l)
-                        mlpClass = MLPClassifier(hidden_layer_sizes=hidden_layers, activation=i, learning_rate_init=j, max_iter=k, random_state=1)
+                        for alp in alphas:
+                            hidden_layers = tuple([32] * l)
+                            mlpClass = MLPClassifier(hidden_layer_sizes=hidden_layers, activation=i, learning_rate_init=j, max_iter=k, alpha = alp, random_state=1)
                         
 
-                        with warnings.catch_warnings():
-                            warnings.filterwarnings("ignore", category=ConvergenceWarning)
-                            mlpClass.fit(X_train, y_train)
+                            with warnings.catch_warnings():
+                                warnings.filterwarnings("ignore", category=ConvergenceWarning)
+                                mlpClass.fit(X_train, y_train)
 
-                        predict_train = mlpClass.predict(X_train)
-                        predict_test = mlpClass.predict(X_test)
+                            predict_train = mlpClass.predict(X_train)
+                            predict_test = mlpClass.predict(X_test)
 
-                        accur_train = mlpClass.score(X_train, y_train)
-                        accur_test = mlpClass.score(X_test, y_test)
-                        mse_train = mean_squared_error(y_train, predict_train)
-                        mse_test = mean_squared_error(y_test, predict_test)
+                            accur_train = mlpClass.score(X_train, y_train)
+                            accur_test = mlpClass.score(X_test, y_test)
+                            mse_train = mean_squared_error(y_train, predict_train)
+                            mse_test = mean_squared_error(y_test, predict_test)
 
-                        title = f"{i}_lr{j}_ep{k}_lay{l}"
-                        results.append({
-                            "Activation": i,
-                            "Label": title,
-                            "Training Accuracy": round(accur_train, 4),
-                            "Test Accuracy": round(accur_test, 4),
-                            "Training MSE": round(mse_train, 4),
-                            "Test MSE": round(mse_test, 4),
-                        })
-                        ax.plot(mlpClass.loss_curve_, label=title)
+                            title = f"{i}_lr{j}_ep{k}_lay{l}"
+                            results.append({
+                                "Activation": i,
+                                "Label": title,
+                                "Alpha": alp,
+                                "Training Accuracy": round(accur_train, 4),
+                                "Test Accuracy": round(accur_test, 4),
+                                "Training MSE": round(mse_train, 4),
+                                "Test MSE": round(mse_test, 4),
+                            })
+                            ax.plot(mlpClass.loss_curve_, label=title)
 
             # Plot the model history for each model in a single plot
             # model history is a plot of accuracy vs number of epochs
