@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import mean_squared_error
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.preprocessing import LabelEncoder
 from ucimlrepo import fetch_ucirepo
 
 class NeuralNet:
@@ -37,8 +38,14 @@ class NeuralNet:
         # Handle null and duplicates, helping on stability
         dframe = self.raw_input.fillna(self.raw_input.mean())
         dframe.drop_duplicates(inplace=True)
+
+        
         X = dframe.drop(self.target_name, axis=1)
         y = dframe[self.target_name]
+
+        for c in X.select_dtypes(include=['object']).columns:
+            label = LabelEncoder()
+            X[c] = label.fit_transform(X[c])
 
         # Standardizing data by putting it to the same scale
         self.X_processed = (X - X.mean()) / X.std()
@@ -66,7 +73,7 @@ class NeuralNet:
         learning_rate = [0.01, 0.1]
         max_iterations = [100, 200] # also known as epochs
         num_hidden_layers = [2, 3]
-        alphas = [0.0001, 0.1]
+        alphas = [0.0001, 0.01]
 
         # Store metrics in result array and create figure grid for graphs
         results = []
@@ -82,7 +89,7 @@ class NeuralNet:
 
                             # Set a low number of neurons to avoid overfitting
                             hidden_layers = tuple([12] * l)
-                            mlpClass = MLPClassifier(hidden_layer_sizes=hidden_layers, activation=i, learning_rate_init=j, max_iter=k, alpha = alp, random_state=1)
+                            mlpClass = MLPClassifier(hidden_layer_sizes=hidden_layers, activation=i, learning_rate_init=j, max_iter=k, alpha = alp, random_state=42)
 
                             # Suppress warning
                             with warnings.catch_warnings():
@@ -105,8 +112,10 @@ class NeuralNet:
                                 "Alpha": alp,
                                 "Training Accuracy": round(accur_train, 4),
                                 "Test Accuracy": round(accur_test, 4),
-                                "Training MSE": round(mse_train, 4),
-                                "Test MSE": round(mse_test, 4),
+                                "Training Loss": round(mse_train, 4),
+                                "Test Loss": round(mse_test, 4),
+                                "Epochs": len(mlpClass.loss_curve_),
+                                "Loss History": mlpClass.loss_curve_
                             })
 
                             # Plotting loss over time
@@ -122,10 +131,26 @@ class NeuralNet:
             ax.legend(fontsize='xx-small', loc='upper right')
             ax.grid(True, linestyle='--', alpha=0.5)
         
+        plt.figure(fig.number)
         plt.suptitle("Neural Network Training History", fontsize=16)
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-        
 
+        # Store graphs and logs
+        plotting = os.path.join("plots", "nn_training_history.png")
+        plt.savefig(plotting, dpi=300)
+        
+        plt.figure(figsize=(12, 8))
+        for r in results:
+            plt.plot(r["Loss History"], label = r["Label"], linewidth=0.7, alpha=0.6)
+        
+        plt.title("Neural Network Training History for all Models", fontsize = 16)
+        plt.xlabel("Epochs")
+        plt.ylabel("Loss")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize = 'xx-small', ncol=2)
+        plt.grid(True, alpha=0.3)
+
+        big_plotting = os.path.join("plots", "all_models_histry.png")
+        plt.savefig(big_plotting)
         
         # Gather metrics via a dataframe to display in log
         dframe_results = pd.DataFrame(results)
@@ -136,15 +161,14 @@ class NeuralNet:
         best_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmax()]
         worst_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmin()]
         
-        # Store graphs and logs
-        plotting = os.path.join("plots", "nn_training_history.png")
-        plt.savefig(plotting)
+        cleaned_dframe = dframe_results.drop(columns='Loss History')
+        
         logging = os.path.join("logs", "results.csv")
-        dframe_results.to_csv(logging, index=False)
+        cleaned_dframe.to_csv(logging, index=False)
 
         # Print the results
         print("\n--- Result table ---")
-        print(dframe_results.to_string(index=False))
+        print(cleaned_dframe.to_string(index=False))
 
         print("Average Test Accuracy per Activation: ")
         print(accur_avg_test)
