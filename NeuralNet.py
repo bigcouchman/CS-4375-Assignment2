@@ -130,10 +130,10 @@ class NeuralNet:
                             model_curves[label] = mlp.loss_curve_
                             print("done")
 
-        # Results Table
+        # Save results table to CSV
         results_df = pd.DataFrame(results)
-        print("\nRESULTS TABLE\n")
-        print(results_df.to_string(index=False))
+        results_df.to_csv("results.csv", index=False)
+        print("\nRESULTS TABLE saved to results.csv")
 
         # Model History Plots (loss vs. epoch)
         # Split into 3 sub-plots

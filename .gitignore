@@ -27,6 +27,3 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
-
-# Data files (do not include dataset in submission)
-*.csv
