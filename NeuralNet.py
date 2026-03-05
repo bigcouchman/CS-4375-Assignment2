@@ -25,9 +25,7 @@ class NeuralNet:
         self.raw_input = pd.concat([X, y], axis=1)
         self.target_name = y.columns[0]
 
-    # TODO: Write code for pre-processing the dataset, which would include
-    # standardization, normalization,
-    #   categorical to numerical, etc
+    # Preprocess data set with standardization and label encoding
     def preprocess(self):
         # Handle null and duplicates, helping on stability
         dframe = self.raw_input.fillna(self.raw_input.mean())
@@ -47,13 +45,7 @@ class NeuralNet:
 
         return self.X_processed, self.y_processed
 
-    # TODO: Train and evaluate models for all combinations of parameters
-    # specified in the init method. We would like to obtain following outputs:
-    #   1. Training Accuracy and Error (Loss) for every model
-    #   2. Test Accuracy and Error (Loss) for every model
-    #   3. History Curve (Plot of Accuracy against training steps) for all
-    #       the models in a single plot. The plot should be color coded i.e.
-    #       different color for each model
+    # Train and evaluate all possible models, keep track of training/test accurcy and errors, and a history curve plot
 
     def train_evaluate(self):
         # Train test split (80/20), create directories to save logs and graphs
@@ -99,7 +91,7 @@ class NeuralNet:
                             mse_train = mean_squared_error(y_train, predict_train)
                             mse_test = mean_squared_error(y_test, predict_test)
 
-                            title = f"{i}_lr{j}_ep{k}_lay{l}"
+                            title = f"{i}_lr{j}_ep{k}_lay{l}_alpha{alp}"
                             results.append({
                                 "Activation": i,
                                 "Label": title,
@@ -115,10 +107,7 @@ class NeuralNet:
                             # Plotting loss over time
                             ax.plot(mlpClass.loss_curve_, label=title)
 
-            # Plot the model history for each model in a single plot
-            # model history is a plot of accuracy vs number of epochs
-            # you may want to create a large sized plot to show multiple lines
-            # in a same figure.
+            # Create a plot for each activation function, modeling loss history for every respective activation model
             ax.set_title(f"NN Training History: {i}")
             ax.set_xlabel("Epochs")
             ax.set_ylabel("MSE")
@@ -133,6 +122,7 @@ class NeuralNet:
         plotting = os.path.join("plots", "nn_training_history.png")
         plt.savefig(plotting, dpi=300)
         
+        # Create a general history loss plot for all 3 activations (48 models)
         plt.figure(figsize=(12, 8))
         for r in results:
             plt.plot(r["Loss History"], label = r["Label"], linewidth=0.7, alpha=0.6)
@@ -155,11 +145,13 @@ class NeuralNet:
         best_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmax()]
         worst_test = dframe_results.loc[dframe_results['Test Accuracy'].idxmin()]
         
+        # Get rid of Loss History as it messes up the table (need to plot only), store table in results.csv
         cleaned_dframe = dframe_results.drop(columns='Loss History')
         
         logging = os.path.join("logs", "results.csv")
         cleaned_dframe.to_csv(logging, index=False)
 
+        # Create an additional file logging performance metrics
         metrics = os.path.join("logs", "metrics.txt")
         with open(metrics, "w") as f:
             f.write("Average Test Accuracy per Activation: ")

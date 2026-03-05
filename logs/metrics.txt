@@ -2,10 +2,10 @@ Average Test Accuracy per Activation: Activation
 logistic    0.563862
 relu        0.546694
 tanh        0.550050
-Best Accuracy: logistic_lr0.01_ep100_lay2 | Accuracy: 0.5827
-Worst Accuracy: relu_lr0.1_ep100_lay2 | Accuracy: 0.5263Average Training Accuracy per Activation: Activation
+Best Accuracy: logistic_lr0.01_ep100_lay2_alpha0.01 | Accuracy: 0.5827
+Worst Accuracy: relu_lr0.1_ep100_lay2_alpha0.0001 | Accuracy: 0.5263Average Training Accuracy per Activation: Activation
 logistic    0.585200
 relu        0.572412
 tanh        0.589413
-Best Accuracy: tanh_lr0.01_ep200_lay3 | Accuracy: 0.6244
-Worst Accuracy: relu_lr0.1_ep100_lay3 | Accuracy: 0.5362
+Best Accuracy: tanh_lr0.01_ep200_lay3_alpha0.0001 | Accuracy: 0.6244
+Worst Accuracy: relu_lr0.1_ep100_lay3_alpha0.01 | Accuracy: 0.5362
