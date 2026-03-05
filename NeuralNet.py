@@ -1,12 +1,6 @@
-#####################################################################################################################
-#   Assignment 2: Neural Network Analysis
-#   This is a starter code in Python 3.6 for a neural network.
-#   You need to have numpy and pandas installed before running this code.
-#   You need to complete all TODO marked sections
-#   You are free to modify this code in any way you want, but need to mention it
-#       in the README file.
-#
-#####################################################################################################################
+# CS 4375 Assignment 2 Part 2 By Nguyen Do (npd220001) and Casey Nguyen (cxn220034)
+# This assignment implements a neural network model and fine tuning parameters for each activation
+# on the UCI wine quality dataset. Question answered in report.md
 
 # Import libraries
 import numpy as np
@@ -149,7 +143,7 @@ class NeuralNet:
         plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize = 'xx-small', ncol=2)
         plt.grid(True, alpha=0.3)
 
-        big_plotting = os.path.join("plots", "all_models_histry.png")
+        big_plotting = os.path.join("plots", "all_models_history.png")
         plt.savefig(big_plotting)
         
         # Gather metrics via a dataframe to display in log
@@ -165,6 +159,17 @@ class NeuralNet:
         
         logging = os.path.join("logs", "results.csv")
         cleaned_dframe.to_csv(logging, index=False)
+
+        metrics = os.path.join("logs", "metrics.txt")
+        with open(metrics, "w") as f:
+            f.write("Average Test Accuracy per Activation: ")
+            f.write(accur_avg_test.to_string())
+            f.write(f"\nBest Accuracy: {best_test['Label']} | Accuracy: {best_test['Test Accuracy']}")
+            f.write(f"\nWorst Accuracy: {worst_test['Label']} | Accuracy: {worst_test['Test Accuracy']}")
+            f.write("Average Training Accuracy per Activation: ")
+            f.write(accur_avg_train.to_string())
+            f.write(f"\nBest Accuracy: {best_train['Label']} | Accuracy: {best_train['Training Accuracy']}")
+            f.write(f"\nWorst Accuracy: {worst_train['Label']} | Accuracy: {worst_train['Training Accuracy']}")
 
         # Print the results
         print("\n--- Result table ---")
