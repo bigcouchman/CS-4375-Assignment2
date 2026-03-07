@@ -182,8 +182,10 @@ class NeuralNet:
         for act in activations:
             subset = results_df[results_df["Activation"] == act]
             avg_acc = subset["Test Accuracy"].mean()
+            avg_training = subset["Train Accuracy"].mean()
+            print(f"  Avg training accuracy for '{act}': {avg_training:.4f}")   
             print(f"  Avg test accuracy for '{act}': {avg_acc:.4f}")
-
+            
         print("\nConclusion: See README.md for a detailed analysis of results.")
 
         return results_df
